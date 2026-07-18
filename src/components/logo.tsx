@@ -3,9 +3,13 @@ import {Box, Text} from 'ink'
 import {type Theme, useTheme} from '../theme.js'
 
 const ART = [
-  ' ▄▄ ▄▄ █▀▄ █▄▀ █ █ ▄▄▀',
-  ' ▄█ █▄ ▀▄▀ █ █ ▀▄▀ █▄▀',
-  ' ▀▀ ▀▀▀ ▀ ▀ ▀ ▀ ▀▀▀ ▀▀▀',
+  '░██████   ░███    ░██    ░███    ░██████████  ░██████  ░██     ░██',
+  ' ░██   ░██  ░████   ░██   ░██░██       ░██     ░██   ░██ ░██     ░██',
+  '░██         ░██░██  ░██  ░██  ░██      ░██    ░██        ░██     ░██',
+  ' ░████████  ░██ ░██ ░██ ░█████████     ░██    ░██        ░██████████',
+  '        ░██ ░██  ░██░██ ░██    ░██     ░██    ░██        ░██     ░██',
+  ' ░██   ░██  ░██   ░████ ░██    ░██     ░██     ░██   ░██ ░██     ░██',
+  '  ░██████   ░██    ░███ ░██    ░██     ░██      ░██████  ░██     ░██',
 ]
 const GRID = ART.map(line => [...line])
 const ROWS = GRID.length
@@ -20,7 +24,7 @@ const TILT = 2 // columns of lean per row — beam slants like /
 const HALF = 2.4 // beam half-width
 // full-cell blocks can swap to a lighter shade char; half-blocks (▀ ▄) must
 // keep their glyph or the effect spills outside the letterform — they dim instead
-const LIGHTER: Record<string, string> = {'█': '▒', '▓': '░'}
+const LIGHTER: Record<string, string> = {'█': '▒'}
 const HALF_BLOCKS = new Set(['▀', '▄'])
 
 const ease = (t: number) => 1 - Math.pow(1 - t, 3)
@@ -32,6 +36,11 @@ function cellAt(ch: string, row: number, col: number, phase: Phase, t: number, d
   if (phase === 'intro') {
     const dt = t - delay
     if (dt < 0) return {ch: ' ', color: theme.primary, dim: false}
+    // ░ is a structural glyph — it resolves directly without flickering through shades
+    if (ch === '░') {
+      if (dt < 110) return {ch: ' ', color: theme.primary, dim: false}
+      return {ch, color: theme.gray, dim: theme.dimSecondary}
+    }
     if (dt < 110) return {ch: HALF_BLOCKS.has(ch) ? ch : '░', color: theme.gray, dim: theme.dimSecondary}
     if (dt < 220) return {ch: HALF_BLOCKS.has(ch) ? ch : '▒', color: theme.gray, dim: theme.dimSecondary}
     return {ch, color: theme.primary, dim: false}
@@ -44,6 +53,8 @@ function cellAt(ch: string, row: number, col: number, phase: Phase, t: number, d
   const d = Math.abs(col - (ROWS - 1 - row) * TILT - p)
   if (d <= HALF && 1 - d / HALF > 0.35) {
     if (HALF_BLOCKS.has(ch)) return {ch, color: theme.gray, dim: theme.dimSecondary}
+    // ░ is already the lightest shade — dim it during sweep instead of lightening
+    if (ch === '░') return {ch, color: theme.gray, dim: theme.dimSecondary}
     return {ch: LIGHTER[ch] ?? ch, color: theme.primary, dim: false}
   }
   return {ch, color: theme.primary, dim: false}
