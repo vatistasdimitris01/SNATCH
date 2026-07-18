@@ -76,10 +76,6 @@ click the theme control in the footer to cycle through `auto`, `light`, and
 - **History** — stored at `~/.config/snatch/history.json`
 - **Downloads** — saved to `~/Downloads` by default
 
-## Credits
-
-Based on [yoinks](https://github.com/pablostanley/yoinks) by Pablo Stanley.
-
 ## Author
 
 **Dimitris Vatistas**

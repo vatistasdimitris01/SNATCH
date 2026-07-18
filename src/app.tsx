@@ -493,6 +493,10 @@ function AppContent({
       {hints.length > 0 ? (
         <>
           <Gap lines={2} />
+          <Text color={theme.gray} dimColor={theme.dimSecondary} justifyContent="center">
+            dvatistas.vercel.app · built by vatistasdimitris
+          </Text>
+          <Gap />
           <Shortcuts
             items={hints}
             leading={
