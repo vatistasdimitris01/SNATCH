@@ -16,7 +16,7 @@ import {formatBytes, formatDuration, formatEta, formatSpeed, shortenPath, trunca
 import {addToHistory, loadHistory} from './lib/history.js'
 import {detectPlatform, isProbablyUrl, type Platform} from './lib/platforms.js'
 import {useMouseClick} from './lib/use-mouse-click.js'
-import {nextThemeMode, ThemeProvider, type ThemeMode, useTheme} from './theme.js'
+import {ThemeProvider, type ThemeMode, useTheme} from './theme.js'
 import {
   buildChoices,
   download,
@@ -133,14 +133,9 @@ type AppProps = {
 }
 
 export function App({initialThemeMode = 'auto', ...props}: AppProps) {
-  const [themeMode, setThemeMode] = useState(initialThemeMode)
-  const cycleTheme = useCallback(() => {
-    setThemeMode(nextThemeMode)
-  }, [])
-
   return (
-    <ThemeProvider mode={themeMode}>
-      <AppContent {...props} cycleTheme={cycleTheme} />
+    <ThemeProvider mode={initialThemeMode}>
+      <AppContent {...props} />
     </ThemeProvider>
   )
 }
@@ -149,12 +144,10 @@ function AppContent({
   initialUrl,
   clipboardUrl,
   onOutcome,
-  cycleTheme,
 }: {
   initialUrl?: string
   clipboardUrl?: string
   onOutcome: (outcome: Outcome) => void
-  cycleTheme: () => void
 }) {
   const theme = useTheme()
   const {exit} = useApp()
@@ -221,10 +214,6 @@ function AppContent({
 
   useInput(
     (input, key) => {
-      if (key.ctrl && input === 't') {
-        cycleTheme()
-        return
-      }
       if (key.escape && (phase.name === 'picking' || phase.name === 'error' || phase.name === 'done')) resetToInput()
       if (key.escape && (phase.name === 'probing' || phase.name === 'downloading')) cancelRun()
       if (key.return && (phase.name === 'error' || phase.name === 'done')) resetToInput()
@@ -282,7 +271,7 @@ function AppContent({
     })()
   }
 
-  let hints: Array<[string, string]> = [...HINTS[phase.name], ['^t', `theme:${theme.mode}`]]
+  let hints: Array<[string, string]> = [...HINTS[phase.name]]
   if (phase.name === 'input' && history.length > 0) {
     hints = [hints[0]!, ['↑', 'history'], ...hints.slice(1)]
   }
@@ -292,7 +281,6 @@ function AppContent({
   // there is no layout math to keep in sync.
   const hintAction = (key: string): (() => void) | undefined => {
     if (key === '^c') return () => exit()
-    if (key === '^t') return cycleTheme
     if (key === 'esc') return phase.name === 'probing' || phase.name === 'downloading' ? cancelRun : resetToInput
     if (key === '↵') {
       if (phase.name === 'input') return () => handleUrlSubmit(urlInput)
